@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <title>Teleop robot</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/style.css"  />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+      <div class="container">
+        <a href="#" class="navbar-brand">Turtlebot</a>
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-label="Exapand Navigation">
+          <div class="navbar-toggler-icon"></div>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" data-bs-toggle="offcanvas" href="#DescriptionArea" role="button" aria-controls="DescriptionArea">
+                Description
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/robotlist">List of Robots</a>
+            </li>
+          </ul>
+        </div>
+        <form method="post" action="/logout">
+          <button type="submit" id="linkbuttonlogout" class="btn btn-danger">
+            Logout
+          </button>
+        </form>
+      </div>
+    </nav>
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="DescriptionArea" aria-labelledby="label">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="label">Description</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div>
+          Per muovere il robot in modalità Manuale usare il joystick rosso sul video, i tasti WASD, le freccette direzionali della tastiera o un controller.</br> 
+          Se si vuole muovere il robot in maniera autonoma si hanno due modalità. La prima riguarda il movimento autonomo di una quantità X scelta, 
+          per fare ciò scegliere prima di quanto ci si vuole spostare tramite lo slider e poi selezionare la direzione tramite il cerchio di bottoni.</br> 
+          La seconda modalità è l’utilizzo della mappa. Per questa cliccare sulla mappa piccola presente sopra il video, e poi selezionare il luogo da raggiungere, 
+          cliccando all’interno dell’immagine che compare.</br> Se si vuole cancellare il goal assegnato, è presente un bottone chiamato giallo “Cancel Goal” </br>
+          Sopra al video c'è la mappa e i vari comandi. La parte bianca della mappa indica zone non ancora esplorate, grigia chiaro invece la zona esplorata. 
+          La gradazione di grigio chiaro più scura indica che la zona non è stata esplorata bene; quando invece è più chiaro, la zona è stata esplorata correttamente.
+          Per vedere il video affianco la mappa, clicca l'icona per Picture-in-Picture (su Google Chrome tasto destro sul video) </br>
+
+        </div>
+      </div>
+    </div>
+
+    <div id="main" class="container bg-light border">
+
+      <p id="stun_url" style="display: none;">{{stun_url}}</p>
+      <p id="turn_url" style="display: none;">{{turn_url}}</p>
+      <p id="turn_username" style="display: none;">{{turn_username}}</p>
+      <p id="turn_password" style="display: none;">{{turn_password}}</p>
+      
+      <div class="row bg-light border">
+        <div class="col text-center">
+          <div id="waitingconn" style="font-size: 40px">Aspettando ricezione video, non teleoperare il robot! </div>
+        </div>
+      </div>
+	  <div class="row bg-light border">
+		  <div class="col">
+			  <div class="position-relative">
+				<video id="background-video" playsinline autoplay muted width="1280" height="720"></video>
+				<div class="position-absolute top-0 start-50">
+				  <button class="btn btn-warning" id="cancelGoal" disabled>Cancel Goal</button>
+				</div>
+				<div class="position-absolute top-0 end-50">
+				  <button class="btn btn-success" id="enable-audio">Abilita audio</button>
+				</div>
+				<div class="position-absolute bottom-0 start-0">
+				  <div id="ciao" class="buttons-holder">
+					<button name="buttonDirection" value="right" type="button" class="btn btn-primary"><i class="bi bi-arrow-right"></i></button>
+					<button name="buttonDirection" value="rightDown" type="button" class="btn btn-primary"><i class="bi bi-arrow-down-right"></i></button>
+					<button name="buttonDirection" value="down" type="button" class="btn btn-primary" ><i class="bi bi-arrow-down"></i></button>
+					<button name="buttonDirection" value="leftDown" type="button" class="btn btn-primary"><i class="bi bi-arrow-down-left"></i></button>
+					<button name="buttonDirection" value="left" type="button" class="btn btn-primary"><i class="bi bi-arrow-left"></i></button>
+					<button name="buttonDirection" value="leftUp" type="button" class="btn btn-primary"><i class="bi bi-arrow-up-left"></i></button>
+					<button name="buttonDirection" value="up" type="button" class="btn btn-primary"><i class="bi bi-arrow-up"></i></button>
+					<button name="buttonDirection" value="rightUp" type="button" class="btn btn-primary"><i class="bi bi-arrow-up-right"></i></button>
+				  </div>
+				</div>
+				<div class="position-absolute bottom-0 start-50 translate-middle">
+				  <canvas id="scaledmap" style="border:2px solid red; background-color: #bfc9c9">Your browser doesn't support html5</canvas>
+				</div>
+				<div class="position-absolute bottom-0 start-100 translate-middle-x translate-middle-y ">
+				  <div id="zone_joystick"></div>
+				</div>
+			  </div>
+		  </div>  
+      </div>
+      
+
+      <p id="roomname" style="display: none;">{{roomname}}</p>
+      <p id="max_linear" style="display: none;">{{max_linear}}</p>
+      <p id="max_angular" style="display: none;">{{max_angular}}</p>
+      <p id="max_distance" style="display: none;">{{max_distance}}</p>
+      <p id="speedlimiter" style="display: none;">{{speedlimiter}}</p>
+         
+      
+      <div class="row">
+        <div class="col">
+         <canvas id="mapimage" style="display:none">Your browser doesn't support html5</canvas>          
+        </div>
+      </div>
+      
+      <div class="row bg-light border">
+        <div class="col text-center">
+          <span id="scalinginstructions" style="font-size: 20px"> Inserisci il fattore di scaling per ingradire (valore maggiore di 1) o rimpicciolire la mappa (valore minore di 1) </span> <br/>
+        </div>
+      </div>
+
+
+      <div class="row bg-light border">
+        <div class="col text-center">
+          <div class="text-center" id="feedback" style="font-size: 20px"></div>
+        </div>
+      </div>
+
+      <div class="row p-2  bg-light border">
+        <div class="col-3 text-center bg-light border">
+          <div id="batterypercentage" style="font-size: 20px"></div>
+        </div>
+        <div class="col-8 bg-light border">
+          <label for="myRange" class="form-label" id="rangeATM"></label>
+          <input type="range" class="form-range" min="0" max="2" value="1" step="0.1" id="myRange">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <p id="waitingmap"></p>
+        </div>
+      </div>
+
+      <div class="row p-2">
+        <div class="col">
+          <p id="savemapresult"></p>
+        </div>
+      </div>
+
+
+      <div class="row p-2">
+        <div class="col text-center">
+          <button id="savebutton" class="btn btn-danger">Salva mappa</button>
+        </div>
+      </div>   
+      <div class="row p-2">
+        <div class="col text-center">
+         
+        </div>
+      </div>
+
+      <div id="myModal" class="modal" tabindex="-1">
+        <div class="modal-dialog modal-xl"> 
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Map Select position</h5>
+              <input id="scalefactor" class="form-control" type="number" name="scalefactor" placeholder="Scaling" min="0" max="50" value="10" style="width: 5em" required> </input>  
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <canvas id="imageMap" style="border:2px solid red; background-color: #bfc9c9">Your browser doesn't support html5</canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+    
+    <!--Importo socket.io per le socket, nipplejs per il controller, teleop per mandare i segnali di nipplejs al socket, watch per ricevere streaming webrtc -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/nipplejs.js"></script>
+    <script src="/javascripts/teleopclient.js"></script>
+    <script src="/private/javascripts/watch.js"></script>
+    <script src="/javascripts/adapter.js"></script>
+    <script src="/javascripts/mapbattery.js"></script>
+
+    <script src="/javascripts/cancelGoalPose.js"></script>
+    <script src="/javascripts/rangeSlider.js"></script>
+    <script src="/javascripts/feedback.js"></script> 
+     <!-- adapter.js serve per rendere più compatibile webrtc con vari browser-->
+  </body>
+</html>
